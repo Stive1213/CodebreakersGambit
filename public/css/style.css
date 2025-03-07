@@ -19,6 +19,21 @@ body {
     border: 2px solid #00ff99;
     box-shadow: 0 0 10px #00ff99;
 }
+nav {
+    text-align: center;
+    margin-bottom: 20px;
+}
+nav a {
+    color: #00ff99;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 24px;
+    transition: all 0.3s;
+}
+nav a:hover {
+    color: #ff3333;
+    text-shadow: 0 0 5px #ff3333;
+}
 header {
     text-align: center;
     margin-bottom: 20px;
@@ -27,11 +42,13 @@ h1 {
     font-size: 48px;
     text-shadow: 0 0 5px #00ff99;
 }
-#user-info {
-    font-size: 18px;
+h2 {
+    font-size: 28px;
+    text-shadow: 0 0 3px #00ff99;
+    margin-bottom: 10px;
 }
-#core-selection {
-    text-align: center;
+p {
+    font-size: 18px;
 }
 .core-btn, .sabotage-btn, #submit-btn {
     background: #1a1a1a;
@@ -46,12 +63,17 @@ h1 {
     background: #00ff99;
     color: #0d0d0d;
 }
+#core-selection {
+    text-align: center;
+}
 #game-area {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
 }
-#puzzle-container {
-    flex: 2;
+#puzzle-container, #sabotage-controls, #hack-log {
+    flex: 1;
+    min-width: 300px;
     padding: 20px;
 }
 #puzzle {
@@ -69,20 +91,6 @@ h1 {
     padding: 5px;
     width: 200px;
     margin-right: 10px;
-}
-#sabotage-controls {
-    flex: 1;
-    padding: 20px;
-}
-#sidebar {
-    margin-top: 20px;
-}
-#leaderboard, #hack-log, #fragments {
-    margin-bottom: 20px;
-}
-h2 {
-    font-size: 28px;
-    text-shadow: 0 0 3px #00ff99;
 }
 ul {
     list-style: none;
@@ -106,6 +114,7 @@ li {
     padding: 20px;
     border: 1px solid #00ff99;
     text-align: center;
+    max-width: 500px;
 }
 .glitch {
     animation: glitch 0.5s infinite;
