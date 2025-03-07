@@ -1,6 +1,4 @@
-Below is an improved version of your `README.md` with enhanced structure, professional formatting, and better readability using Markdown conventions. I've refined the layout with consistent headings, bullet points, and code blocks, while keeping the content intact. This version is visually appealing and easier to skim, making it ideal for a portfolio showcase. Note that I’ve assumed a plain-text Markdown file; GitHub will render it with its default font styling (e.g., sans-serif fonts like Arial), but I’ve optimized the structure for clarity.
 
----
 
 # Codebreaker's Gambit
 
