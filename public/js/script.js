@@ -35,32 +35,29 @@ function initLogin() {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        fetch('../server/login.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                user = data.user;
-                updateUser();
-                window.location.href = 'index.html';
-            } else {
-                messageEl.textContent = data.error;
-            }
-        });
+        auth(username, password, false);
     });
 
     registerBtn.addEventListener('click', () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        auth(username, password, true);
+    });
+
+    function auth(username, password, isRegister) {
         fetch('../server/login.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}${isRegister ? '&register-btn=1' : ''}`
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text(); // Get raw text first for debugging
+        })
+        .then(text => {
+            console.log('Raw login response:', text); // Debug log
+            return JSON.parse(text); // Parse as JSON
+        })
         .then(data => {
             if (data.success) {
                 user = data.user;
@@ -69,8 +66,12 @@ function initLogin() {
             } else {
                 messageEl.textContent = data.error;
             }
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            messageEl.textContent = 'Login failed. Check console for details.';
         });
-    });
+    }
 }
 
 function initHome() {
@@ -98,9 +99,20 @@ function initHome() {
 
 function initProfile() {
     fetch('../server/get_profile.php')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.text(); // Get raw text first
+    })
+    .then(text => {
+        console.log('Raw profile response:', text); // Debug log
+        return JSON.parse(text); // Parse as JSON
+    })
     .then(data => {
-        if (data.error) return alert(data.error);
+        if (data.error) {
+            console.error('Profile error:', data.error);
+            return alert(data.error);
+        }
+        console.log('Profile data:', data); // Debug log
         user.credits = data.credits;
         user.level = data.level;
         document.getElementById('user-info').textContent = `${data.username} | Credits: ${data.credits} | Level: ${data.level}`;
@@ -109,18 +121,23 @@ function initProfile() {
         document.getElementById('badge').textContent = data.badge;
         document.getElementById('streak').textContent = data.streak;
         const fragmentList = document.getElementById('fragment-list');
-        fragmentList.innerHTML = data.fragments.map(f => `<li>${f.text}</li>`).join('');
+        fragmentList.innerHTML = data.fragments.length ? 
+            data.fragments.map(f => `<li>${f.text}</li>`).join('') : 
+            '<li>No fragments collected yet.</li>';
         const solvedList = document.getElementById('solved-list');
         solvedList.innerHTML = data.solved_puzzles.length ? 
             data.solved_puzzles.map(p => `<li>${p.question} (${p.type}, ${p.core}${p.language ? `, ${p.language}` : ''})</li>`).join('') : 
             '<li>No puzzles solved yet.</li>';
     })
-    .catch(error => console.error('Profile fetch error:', error));
+    .catch(error => {
+        console.error('Profile fetch error:', error);
+        alert('Failed to load profile. Check console for details.');
+    });
     fetch('../server/get_achievements.php')
     .then(response => response.json())
     .then(achievements => {
         const achievementList = document.getElementById('achievement-list');
-        achievementList.innerHTML = achievements.map(a => `<li>${a.name}: ${a.description} (${a.credits} Credits)</li>`).join('');
+        achievementList.innerHTML = achievements.map(a => `<li>${a.name}: ${a.description} (${a.credits} Credits)</li>`).join('') || '<li>No achievements yet.</li>';
     });
 }
 
@@ -152,7 +169,8 @@ function initPuzzle() {
         hintBtn: document.getElementById('hint-btn'),
         sabotageTarget: document.getElementById('sabotage-target'),
         log: document.getElementById('log-list'),
-        puzzleBox: document.querySelector('.puzzle-box')
+        puzzleBox: document.querySelector('.puzzle-box'),
+        maxDifficulty: document.getElementById('max-difficulty')
     };
 
     document.querySelectorAll('.core-btn').forEach(btn => {
@@ -172,6 +190,11 @@ function initPuzzle() {
     document.querySelectorAll('.sabotage-btn').forEach(btn => {
         btn.addEventListener('click', () => sabotage(btn.dataset.type));
     });
+
+    // Set initial max difficulty based on user level
+    if (elements.maxDifficulty) {
+        elements.maxDifficulty.textContent = user.level + 1;
+    }
 
     function startGame() {
         elements.coreSelection.style.display = 'none';
@@ -193,7 +216,7 @@ function initPuzzle() {
                 elements.hintBtn.style.display = 'none';
             } else {
                 currentPuzzle = data.puzzle;
-                elements.puzzle.textContent = data.puzzle.question;
+                elements.puzzle.textContent = `${data.puzzle.question} (Difficulty: ${data.puzzle.difficulty})`;
                 elements.input.value = '';
                 elements.input.style.display = 'inline';
                 elements.submitBtn.style.display = 'inline';
@@ -201,6 +224,10 @@ function initPuzzle() {
                 startTimer(data.timer);
                 if (data.countermeasure) applyCountermeasure(data.countermeasure);
             }
+        })
+        .catch(error => {
+            console.error('Puzzle fetch error:', error);
+            elements.puzzle.textContent = 'Failed to load puzzle.';
         });
     }
 
@@ -239,6 +266,9 @@ function initPuzzle() {
                 setTimeout(() => {
                     elements.submitBtn.classList.remove('success');
                     elements.puzzleBox.classList.remove('success');
+                    if (elements.maxDifficulty) {
+                        elements.maxDifficulty.textContent = user.level + 1; // Update max difficulty
+                    }
                     loadPuzzle();
                 }, 1000);
                 updateUser();

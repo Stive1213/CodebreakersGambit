@@ -10,13 +10,17 @@ $core = filter_input(INPUT_GET, 'core', FILTER_SANITIZE_STRING) ?? 'edge';
 $language = filter_input(INPUT_GET, 'language', FILTER_SANITIZE_STRING);
 $timer = $core === 'edge' ? 180 : ($core === 'deep' ? 120 : 60);
 
-$stmt = $pdo->prepare("SELECT solved_puzzles FROM users WHERE id = ?");
+// Get user level
+$stmt = $pdo->prepare("SELECT level, solved_puzzles FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
-$solved = array_filter(explode(',', $stmt->fetchColumn()));
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$user_level = $user['level'];
+$solved = $user['solved_puzzles'] ? array_filter(explode(',', trim($user['solved_puzzles'], ','))) : [];
 $solved = empty($solved) ? [0] : $solved;
 
-$query = "SELECT * FROM puzzles WHERE core = ? AND id NOT IN (" . implode(',', $solved) . ")";
-$params = [$core];
+// Filter puzzles by level (difficulty <= user_level + 1) and unsolved
+$query = "SELECT * FROM puzzles WHERE core = ? AND difficulty <= ? AND id NOT IN (" . implode(',', $solved) . ")";
+$params = [$core, $user_level + 1];
 if ($language && $language !== 'all') {
     $query .= " AND (language = ? OR language IS NULL)";
     $params[] = $language;
@@ -28,7 +32,7 @@ $stmt->execute($params);
 $puzzle = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$puzzle) {
-    echo json_encode(['message' => 'No new puzzles available in this core/language']);
+    echo json_encode(['message' => 'No new puzzles available for your level in this core/language']);
     exit;
 }
 
