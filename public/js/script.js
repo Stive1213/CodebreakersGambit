@@ -111,8 +111,11 @@ function initProfile() {
         const fragmentList = document.getElementById('fragment-list');
         fragmentList.innerHTML = data.fragments.map(f => `<li>${f.text}</li>`).join('');
         const solvedList = document.getElementById('solved-list');
-        solvedList.innerHTML = data.solved_puzzles.map(p => `<li>${p.question} (${p.type}, ${p.core})</li>`).join('');
-    });
+        solvedList.innerHTML = data.solved_puzzles.length ? 
+            data.solved_puzzles.map(p => `<li>${p.question} (${p.type}, ${p.core}${p.language ? `, ${p.language}` : ''})</li>`).join('') : 
+            '<li>No puzzles solved yet.</li>';
+    })
+    .catch(error => console.error('Profile fetch error:', error));
     fetch('../server/get_achievements.php')
     .then(response => response.json())
     .then(achievements => {
@@ -133,12 +136,14 @@ function initLeaderboard() {
 
 function initPuzzle() {
     let currentCore = 'edge';
+    let currentLanguage = 'all';
     let currentPuzzle = null;
     let timerInterval;
 
     const elements = {
         userInfo: document.getElementById('user-info'),
         coreSelection: document.getElementById('core-selection'),
+        languageSelect: document.getElementById('language-select'),
         gameArea: document.getElementById('game-area'),
         puzzle: document.getElementById('puzzle'),
         timer: document.getElementById('timer'),
@@ -157,6 +162,11 @@ function initPuzzle() {
         });
     });
 
+    elements.languageSelect.addEventListener('change', (e) => {
+        currentLanguage = e.target.value;
+        if (elements.gameArea.style.display === 'block') loadPuzzle();
+    });
+
     elements.submitBtn.addEventListener('click', submitSolution);
     elements.hintBtn.addEventListener('click', getHint);
     document.querySelectorAll('.sabotage-btn').forEach(btn => {
@@ -172,7 +182,7 @@ function initPuzzle() {
     }
 
     function loadPuzzle() {
-        fetch(`../server/get_puzzle.php?core=${currentCore}`)
+        fetch(`../server/get_puzzle.php?core=${currentCore}&language=${currentLanguage}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) return alert(data.error);

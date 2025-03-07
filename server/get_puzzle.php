@@ -7,19 +7,28 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $core = filter_input(INPUT_GET, 'core', FILTER_SANITIZE_STRING) ?? 'edge';
+$language = filter_input(INPUT_GET, 'language', FILTER_SANITIZE_STRING);
 $timer = $core === 'edge' ? 180 : ($core === 'deep' ? 120 : 60);
 
 $stmt = $pdo->prepare("SELECT solved_puzzles FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
-$solved = explode(',', trim($stmt->fetchColumn(), ','));
-$solved = empty($solved[0]) ? [] : $solved;
+$solved = array_filter(explode(',', $stmt->fetchColumn()));
+$solved = empty($solved) ? [0] : $solved;
 
-$stmt = $pdo->prepare("SELECT * FROM puzzles WHERE core = ? AND id NOT IN (" . (empty($solved) ? '0' : implode(',', $solved)) . ") ORDER BY RAND() LIMIT 1");
-$stmt->execute([$core]);
+$query = "SELECT * FROM puzzles WHERE core = ? AND id NOT IN (" . implode(',', $solved) . ")";
+$params = [$core];
+if ($language && $language !== 'all') {
+    $query .= " AND (language = ? OR language IS NULL)";
+    $params[] = $language;
+}
+$query .= " ORDER BY RAND() LIMIT 1";
+
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
 $puzzle = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$puzzle) {
-    echo json_encode(['message' => 'No new puzzles available in this core']);
+    echo json_encode(['message' => 'No new puzzles available in this core/language']);
     exit;
 }
 

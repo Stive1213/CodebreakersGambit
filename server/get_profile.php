@@ -10,7 +10,6 @@ $stmt = $pdo->prepare("SELECT username, credits, level, fragments_collected, sol
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Update streak
 $today = date('Y-m-d');
 if ($user['last_login'] !== $today) {
     $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -26,18 +25,22 @@ if ($user['last_login'] !== $today) {
 
 $fragments = [];
 if ($user['fragments_collected']) {
-    $ids = explode(',', trim($user['fragments_collected'], ','));
-    $stmt = $pdo->prepare("SELECT * FROM fragments WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
-    $stmt->execute($ids);
-    $fragments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ids = array_filter(explode(',', $user['fragments_collected']));
+    if (!empty($ids)) {
+        $stmt = $pdo->prepare("SELECT * FROM fragments WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+        $stmt->execute($ids);
+        $fragments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 $solved = [];
 if ($user['solved_puzzles']) {
-    $ids = explode(',', trim($user['solved_puzzles'], ','));
-    $stmt = $pdo->prepare("SELECT id, type, question, core, difficulty FROM puzzles WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
-    $stmt->execute($ids);
-    $solved = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ids = array_filter(explode(',', $user['solved_puzzles']));
+    if (!empty($ids)) {
+        $stmt = $pdo->prepare("SELECT id, type, question, core, difficulty, language FROM puzzles WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+        $stmt->execute($ids);
+        $solved = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 $stmt = $pdo->query("SELECT COUNT(*) as total FROM users");
