@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateUser() {
     localStorage.setItem('user', JSON.stringify(user));
     const userInfoEls = document.querySelectorAll('#user-info');
-    userInfoEls.forEach(el => el.textContent = `${user.username} | Credits: ${user.credits}`);
+    userInfoEls.forEach(el => el.textContent = `${user.username} | Credits: ${user.credits} | Level: ${user.level || 1}`);
 }
 
 function initLogin() {
@@ -102,11 +102,16 @@ function initProfile() {
     .then(data => {
         if (data.error) return alert(data.error);
         user.credits = data.credits;
-        document.getElementById('user-info').textContent = `${data.username} | Credits: ${data.credits}`;
+        user.level = data.level;
+        document.getElementById('user-info').textContent = `${data.username} | Credits: ${data.credits} | Level: ${data.level}`;
         document.getElementById('rank').textContent = `Rank: ${data.rank} / ${data.total_players}`;
+        document.getElementById('level').textContent = data.level;
         document.getElementById('badge').textContent = data.badge;
+        document.getElementById('streak').textContent = data.streak;
         const fragmentList = document.getElementById('fragment-list');
         fragmentList.innerHTML = data.fragments.map(f => `<li>${f.text}</li>`).join('');
+        const solvedList = document.getElementById('solved-list');
+        solvedList.innerHTML = data.solved_puzzles.map(p => `<li>${p.question} (${p.type}, ${p.core})</li>`).join('');
     });
     fetch('../server/get_achievements.php')
     .then(response => response.json())
@@ -139,8 +144,10 @@ function initPuzzle() {
         timer: document.getElementById('timer'),
         input: document.getElementById('solution-input'),
         submitBtn: document.getElementById('submit-btn'),
+        hintBtn: document.getElementById('hint-btn'),
         sabotageTarget: document.getElementById('sabotage-target'),
-        log: document.getElementById('log-list')
+        log: document.getElementById('log-list'),
+        puzzleBox: document.querySelector('.puzzle-box')
     };
 
     document.querySelectorAll('.core-btn').forEach(btn => {
@@ -151,6 +158,7 @@ function initPuzzle() {
     });
 
     elements.submitBtn.addEventListener('click', submitSolution);
+    elements.hintBtn.addEventListener('click', getHint);
     document.querySelectorAll('.sabotage-btn').forEach(btn => {
         btn.addEventListener('click', () => sabotage(btn.dataset.type));
     });
@@ -168,11 +176,21 @@ function initPuzzle() {
         .then(response => response.json())
         .then(data => {
             if (data.error) return alert(data.error);
-            currentPuzzle = data.puzzle;
-            elements.puzzle.textContent = data.puzzle.question;
-            elements.input.value = '';
-            startTimer(data.timer);
-            if (data.countermeasure) applyCountermeasure(data.countermeasure);
+            if (data.message) {
+                elements.puzzle.textContent = data.message;
+                elements.input.style.display = 'none';
+                elements.submitBtn.style.display = 'none';
+                elements.hintBtn.style.display = 'none';
+            } else {
+                currentPuzzle = data.puzzle;
+                elements.puzzle.textContent = data.puzzle.question;
+                elements.input.value = '';
+                elements.input.style.display = 'inline';
+                elements.submitBtn.style.display = 'inline';
+                elements.hintBtn.style.display = 'inline';
+                startTimer(data.timer);
+                if (data.countermeasure) applyCountermeasure(data.countermeasure);
+            }
         });
     }
 
@@ -202,13 +220,38 @@ function initPuzzle() {
         .then(data => {
             if (data.success) {
                 user.credits += data.credits;
+                user.level = Math.floor(user.credits / 100) + 1;
                 clearInterval(timerInterval);
                 logEvent(`Puzzle solved! +${data.credits} Credits`);
                 if (data.fragment) logEvent(`Fragment found: ${data.fragment.text}`);
-                loadPuzzle();
+                elements.submitBtn.classList.add('success');
+                elements.puzzleBox.classList.add('success');
+                setTimeout(() => {
+                    elements.submitBtn.classList.remove('success');
+                    elements.puzzleBox.classList.remove('success');
+                    loadPuzzle();
+                }, 1000);
                 updateUser();
             } else {
                 logEvent(data.message);
+            }
+        });
+    }
+
+    function getHint() {
+        fetch('../server/get_hint.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `puzzle_id=${currentPuzzle.id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                logEvent(`Hint: ${data.hint}`);
+                user.credits = data.remaining_credits;
+                updateUser();
+            } else {
+                logEvent(data.error);
             }
         });
     }
@@ -287,6 +330,7 @@ function startDailyChallenge(challenge) {
     const solution = prompt(`Solve: ${challenge.question}`);
     if (solution && solution.toLowerCase() === challenge.solution.toLowerCase()) {
         user.credits += challenge.reward;
+        user.level = Math.floor(user.credits / 100) + 1;
         updateUser();
         alert(`Challenge completed! +${challenge.reward} Credits`);
     } else {

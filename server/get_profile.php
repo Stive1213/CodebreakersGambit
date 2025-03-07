@@ -6,9 +6,23 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT username, credits, fragments_collected FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT username, credits, level, fragments_collected, solved_puzzles, badge, last_login, streak FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Update streak
+$today = date('Y-m-d');
+if ($user['last_login'] !== $today) {
+    $yesterday = date('Y-m-d', strtotime('-1 day'));
+    $streak = ($user['last_login'] === $yesterday) ? $user['streak'] + 1 : 1;
+    $stmt = $pdo->prepare("UPDATE users SET last_login = ?, streak = ? WHERE id = ?");
+    $stmt->execute([$today, $streak, $_SESSION['user_id']]);
+    $user['streak'] = $streak;
+    if ($streak >= 3 && !$pdo->query("SELECT FIND_IN_SET(4, achievements) FROM users WHERE id = {$_SESSION['user_id']}")->fetchColumn()) {
+        $stmt = $pdo->prepare("UPDATE users SET achievements = CONCAT(achievements, ',4') WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+    }
+}
 
 $fragments = [];
 if ($user['fragments_collected']) {
@@ -16,6 +30,14 @@ if ($user['fragments_collected']) {
     $stmt = $pdo->prepare("SELECT * FROM fragments WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
     $stmt->execute($ids);
     $fragments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$solved = [];
+if ($user['solved_puzzles']) {
+    $ids = explode(',', trim($user['solved_puzzles'], ','));
+    $stmt = $pdo->prepare("SELECT id, type, question, core, difficulty FROM puzzles WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+    $stmt->execute($ids);
+    $solved = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $stmt = $pdo->query("SELECT COUNT(*) as total FROM users");
@@ -27,7 +49,11 @@ $rank = $stmt->fetchColumn() + 1;
 echo json_encode([
     'username' => $user['username'],
     'credits' => $user['credits'],
+    'level' => $user['level'],
     'fragments' => $fragments,
+    'solved_puzzles' => $solved,
+    'badge' => $user['badge'],
+    'streak' => $user['streak'],
     'rank' => $rank,
     'total_players' => $total
 ]);
