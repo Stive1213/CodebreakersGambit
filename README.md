@@ -1,6 +1,7 @@
-Here’s the updated README.md with the logo removed and a note added about using an API for connectivity between the front-end and back-end. It remains professional, concise, and tailored for your portfolio, emphasizing the API-driven architecture.
+
 
 Codebreaker's Gambit
+
 A dynamic, level-based puzzle game built with PHP, MySQL, JavaScript, and HTML/CSS.
 
 Overview
@@ -12,7 +13,9 @@ Back-End: PHP, MySQL, API development
 Front-End: JavaScript, HTML5, CSS3
 Game Logic: Level progression, randomization, unsolved puzzle filtering
 DevOps: Local deployment with XAMPP
+
 Features
+
 Puzzle Variety: Over 50 puzzles across five types:
 Ciphers (e.g., "KHOOR" → "HELLO")
 Binary (e.g., "01001000" → "H")
@@ -26,6 +29,7 @@ Daily Challenges: Time-limited puzzles for bonus credits.
 Leaderboard: Real-time ranking by credits.
 Fragments: Collectible story pieces revealing the Netmind’s narrative.
 API-Driven: Front-end communicates with back-end via RESTful API endpoints.
+
 Tech Stack
 Front-End:
 HTML5, CSS3 (custom style.css)
@@ -34,6 +38,7 @@ Back-End:
 PHP 8.x (API endpoints in server/ folder)
 MySQL (MariaDB) for data persistence
 Connectivity: RESTful API for seamless front-end/back-end interaction
+
 Tools:
 XAMPP for local development
 Git for version control
@@ -45,11 +50,13 @@ Web browser (e.g., Chrome, Firefox)
 Setup Instructions
 Clone the Repository:
 
-git clone https://github.com/yourusername/CodebreakersGambit.git
+git clone https://github.com/stive1213/CodebreakersGambit.git
 cd CodebreakersGambit
 Deploy to XAMPP:
 Copy the CodebreakersGambit folder to C:\xampp\htdocs\.
+
 Configure the Database:
+
 Start XAMPP, launch Apache and MySQL.
 Open http://localhost/phpmyadmin.
 Create a new database named codebreaker_db.
@@ -61,7 +68,10 @@ $pdo = new PDO("mysql:host=localhost;dbname=codebreaker_db", "root", "");
 Run the Application:
 Open http://localhost/CodebreakersGambit/public/login.html in your browser.
 Register a new user .
+
+
 Usage
+
 Login/Register: Start at login.html to create an account or sign in.
 Play: Go to puzzle.html, select a core (Edge, Deep, Core), and solve puzzles.
 Progress: Earn credits, level up, and unlock harder puzzles via the API.
@@ -79,7 +89,5 @@ Fork this repository, submit pull requests, or open issues for bugs and feature 
 
 Contact
 Built by Estifanos.A
-
-
 Email: estifanosamsalu833@.com
 Portfolio: stive.netlify.app
