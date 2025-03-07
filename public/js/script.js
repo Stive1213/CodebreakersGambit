@@ -213,6 +213,6 @@ function initPuzzle() {
                 elements.tutorialText.textContent = steps[step];
                 speakNetmind(steps[step]);
             }
-        });
+        });  
     }
 }
