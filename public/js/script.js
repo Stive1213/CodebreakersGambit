@@ -1,44 +1,74 @@
-let user = null;
+let user = JSON.parse(localStorage.getItem('user')) || null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const page = window.location.pathname.split('/').pop() || 'index.html';
-    if (!user) loginPrompt();
-    else {
-        if (page === 'index.html') initHome();
+    if (!user && page !== 'login.html') {
+        window.location.href = 'login.html';
+    } else {
+        if (page === 'login.html') initLogin();
+        else if (page === 'index.html') initHome();
         else if (page === 'profile.html') initProfile();
         else if (page === 'top-coders.html') initTopCoders();
         else if (page === 'puzzle.html') initPuzzle();
     }
 });
 
-function loginPrompt() {
-    const username = prompt('Enter username:');
-    const password = prompt('Enter password:');
-    fetch('server/login.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `username=${username}&password=${password}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            user = data.user;
-            localStorage.setItem('user', JSON.stringify(user));
-            window.location.reload();
-        } else {
-            alert(data.error);
-            loginPrompt();
-        }
-    });
-}
-
 function updateUser() {
+    localStorage.setItem('user', JSON.stringify(user));
     const userInfoEls = document.querySelectorAll('#user-info');
     userInfoEls.forEach(el => el.textContent = `${user.username} | Credits: ${user.credits}`);
 }
 
+function initLogin() {
+    const loginForm = document.getElementById('login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const messageEl = document.getElementById('auth-message');
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        fetch('../server/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                user = data.user;
+                updateUser();
+                window.location.href = 'index.html';
+            } else {
+                messageEl.textContent = data.error;
+            }
+        });
+    });
+
+    registerBtn.addEventListener('click', () => {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        fetch('../server/login.php', { // Same endpoint handles registration
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                user = data.user;
+                updateUser();
+                window.location.href = 'index.html';
+            } else {
+                messageEl.textContent = data.error;
+            }
+        });
+    });
+}
+
 function initHome() {
-    fetch('server/get_news.php')
+    fetch('../server/get_news.php')
     .then(response => response.json())
     .then(news => {
         const newsList = document.getElementById('news-list');
@@ -48,7 +78,7 @@ function initHome() {
 }
 
 function initProfile() {
-    fetch('server/get_profile.php')
+    fetch('../server/get_profile.php')
     .then(response => response.json())
     .then(data => {
         if (data.error) return alert(data.error);
@@ -61,7 +91,7 @@ function initProfile() {
 }
 
 function initTopCoders() {
-    fetch('server/get_leaderboard.php')
+    fetch('../server/get_leaderboard.php')
     .then(response => response.json())
     .then(leaderboard => {
         const leaderboardList = document.getElementById('leaderboard-list');
@@ -109,7 +139,7 @@ function initPuzzle() {
     }
 
     function loadPuzzle() {
-        fetch(`server/get_puzzle.php?core=${currentCore}`)
+        fetch(`../server/get_puzzle.php?core=${currentCore}`)
         .then(response => response.json())
         .then(data => {
             if (data.error) return alert(data.error);
@@ -139,10 +169,10 @@ function initPuzzle() {
 
     function submitSolution() {
         const solution = elements.input.value.trim();
-        fetch('server/submit_solution.php', {
+        fetch('../server/submit_solution.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `puzzle_id=${currentPuzzle.id}&solution=${solution}`
+            body: `puzzle_id=${currentPuzzle.id}&solution=${encodeURIComponent(solution)}`
         })
         .then(response => response.json())
         .then(data => {
@@ -164,7 +194,7 @@ function initPuzzle() {
 
     function sabotage(type) {
         const targetId = elements.sabotageTarget.value;
-        fetch('server/sabotage.php', {
+        fetch('../server/sabotage.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `target_id=${targetId}&type=${type}`
@@ -203,9 +233,10 @@ function initPuzzle() {
 
     function pollGame() {
         setInterval(() => {
-            fetch('server/poll.php')
+            fetch('../server/poll.php')
             .then(response => response.json())
             .then(data => {
+                if (data.error) return;
                 if (data.sabotage.length) {
                     data.sabotage.forEach(s => {
                         applySabotage(s.type);
@@ -218,6 +249,12 @@ function initPuzzle() {
                 }
             });
         }, 2000);
+    }
+
+    function applySabotage(type) {
+        if (type === 'scramble') {
+            elements.puzzle.textContent = elements.puzzle.textContent.split('').sort(() => Math.random() - 0.5).join('');
+        }
     }
 
     if (!localStorage.getItem('tutorialDone')) {
@@ -239,5 +276,6 @@ function initPuzzle() {
                 speakNetmind(steps[step]);
             }
         });
-}
+    }
+    updateUser();
 }

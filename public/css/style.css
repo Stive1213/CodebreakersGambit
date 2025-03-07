@@ -10,24 +10,29 @@ body {
     font-size: 20px;
     line-height: 1.5;
     padding: 20px;
+    background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
 }
 #terminal {
     max-width: 1200px;
     margin: 0 auto;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
     border: 2px solid #00ff99;
-    box-shadow: 0 0 10px #00ff99;
+    box-shadow: 0 0 15px #00ff99, inset 0 0 5px #00ff99;
+    border-radius: 5px;
 }
 nav {
     text-align: center;
     margin-bottom: 20px;
+    background: #1a1a1a;
+    padding: 10px;
+    border-bottom: 1px solid #00ff99;
 }
 nav a {
     color: #00ff99;
     text-decoration: none;
-    margin: 0 15px;
-    font-size: 24px;
+    margin: 0 20px;
+    font-size: 26px;
     transition: all 0.3s;
 }
 nav a:hover {
@@ -36,67 +41,91 @@ nav a:hover {
 }
 header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 h1 {
-    font-size: 48px;
-    text-shadow: 0 0 5px #00ff99;
+    font-size: 52px;
+    text-shadow: 0 0 8px #00ff99;
+    letter-spacing: 2px;
 }
 h2 {
-    font-size: 28px;
-    text-shadow: 0 0 3px #00ff99;
-    margin-bottom: 10px;
+    font-size: 32px;
+    text-shadow: 0 0 4px #00ff99;
+    margin-bottom: 15px;
 }
 p {
     font-size: 18px;
 }
-.core-btn, .sabotage-btn, #submit-btn {
+.core-btn, .sabotage-btn, #submit-btn, #login-btn, #register-btn {
     background: #1a1a1a;
     color: #00ff99;
     border: 1px solid #00ff99;
-    padding: 8px 16px;
+    padding: 10px 20px;
     margin: 5px;
     cursor: pointer;
     transition: all 0.3s;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
 }
-.core-btn:hover, .sabotage-btn:hover, #submit-btn:hover {
+.core-btn:hover, .sabotage-btn:hover, #submit-btn:hover, #login-btn:hover, #register-btn:hover {
     background: #00ff99;
     color: #0d0d0d;
+    box-shadow: 0 0 10px #00ff99;
 }
 #core-selection {
     text-align: center;
+    margin: 20px 0;
 }
 #game-area {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 25px;
 }
 #puzzle-container, #sabotage-controls, #hack-log {
     flex: 1;
     min-width: 300px;
-    padding: 20px;
+    padding: 25px;
+    background: #151515;
+    border: 1px solid #00ff99;
+    border-radius: 3px;
 }
 #puzzle {
-    font-size: 24px;
-    margin-bottom: 10px;
+    font-size: 26px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 2px #00ff99;
 }
 #timer {
-    font-size: 18px;
+    font-size: 20px;
     color: #ff3333;
+    text-shadow: 0 0 2px #ff3333;
 }
-#solution-input {
+#solution-input, #username, #password {
     background: #0d0d0d;
     color: #00ff99;
     border: 1px solid #00ff99;
-    padding: 5px;
-    width: 200px;
-    margin-right: 10px;
+    padding: 8px;
+    width: 250px;
+    margin: 10px 0;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+}
+#auth-form {
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+#auth-message {
+    color: #ff3333;
+    margin-top: 10px;
 }
 ul {
     list-style: none;
 }
 li {
-    margin: 5px 0;
+    margin: 8px 0;
+    padding: 5px;
+    background: #1a1a1a;
+    border-left: 3px solid #00ff99;
 }
 .modal {
     position: fixed;
@@ -104,17 +133,18 @@ li {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 .modal-content {
     background: #1a1a1a;
-    padding: 20px;
+    padding: 25px;
     border: 1px solid #00ff99;
     text-align: center;
-    max-width: 500px;
+    max-width: 600px;
+    box-shadow: 0 0 10px #00ff99;
 }
 .glitch {
     animation: glitch 0.5s infinite;
