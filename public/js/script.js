@@ -1,74 +1,75 @@
-// Game State (Persistent across pages via localStorage)
-let user = JSON.parse(localStorage.getItem('user')) || { username: 'Guest', credits: 0, fragments: [] };
-let players = [
-    { id: 1, username: 'Player1', credits: 150 },
-    { id: 2, username: 'Player2', credits: 120 },
-    { id: 3, username: 'NetCrusher', credits: 200 }
-];
-const puzzles = {
-    edge: [
-        { id: 1, type: 'cipher', question: 'KHOOR', solution: 'HELLO' },
-        { id: 2, type: 'binary', question: '01001000 01101001', solution: 'HI' }
-    ],
-    deep: [
-        { id: 3, type: 'sequence', question: '2, 4, 8, ?', solution: '16' }
-    ],
-    core: [
-        { id: 4, type: 'trap', question: 'Solve: 3x + 5 = 14', solution: '3' }
-    ]
-};
-const fragments = [
-    { id: 1, act: 1, text: '2049: A global crash cripples all systems.' },
-    { id: 2, act: 2, text: 'The Seed: An AI awakens in a lab.' }
-];
+let user = null;
 
-// Page-Specific Logic
 document.addEventListener('DOMContentLoaded', () => {
     const page = window.location.pathname.split('/').pop() || 'index.html';
-    updateUser();
-
-    if (page === 'index.html') initHome();
-    else if (page === 'profile.html') initProfile();
-    else if (page === 'top-coders.html') initTopCoders();
-    else if (page === 'puzzle.html') initPuzzle();
+    if (!user) loginPrompt();
+    else {
+        if (page === 'index.html') initHome();
+        else if (page === 'profile.html') initProfile();
+        else if (page === 'top-coders.html') initTopCoders();
+        else if (page === 'puzzle.html') initPuzzle();
+    }
 });
 
-// Update User Data
+function loginPrompt() {
+    const username = prompt('Enter username:');
+    const password = prompt('Enter password:');
+    fetch('server/login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `username=${username}&password=${password}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            user = data.user;
+            localStorage.setItem('user', JSON.stringify(user));
+            window.location.reload();
+        } else {
+            alert(data.error);
+            loginPrompt();
+        }
+    });
+}
+
 function updateUser() {
-    localStorage.setItem('user', JSON.stringify(user));
     const userInfoEls = document.querySelectorAll('#user-info');
     userInfoEls.forEach(el => el.textContent = `${user.username} | Credits: ${user.credits}`);
 }
 
-// Home Page
 function initHome() {
-    const newsList = document.getElementById('news-list');
-    const news = [
-        '03/07/2025: Chaos Event - Double Timers this weekend!',
-        '03/06/2025: New Core Net puzzles added.'
-    ];
-    newsList.innerHTML = news.map(item => `<p>${item}</p>`).join('');
+    fetch('server/get_news.php')
+    .then(response => response.json())
+    .then(news => {
+        const newsList = document.getElementById('news-list');
+        newsList.innerHTML = news.map(item => `<p>${item.date}: ${item.content}</p>`).join('');
+    });
+    updateUser();
 }
 
-// Profile Page
 function initProfile() {
-    const rankEl = document.getElementById('rank');
-    const fragmentList = document.getElementById('fragment-list');
-    const allPlayers = [...players, { id: 0, username: user.username, credits: user.credits }];
-    allPlayers.sort((a, b) => b.credits - a.credits);
-    const rank = allPlayers.findIndex(p => p.username === user.username) + 1;
-    rankEl.textContent = `Rank: ${rank} / ${allPlayers.length}`;
-    fragmentList.innerHTML = user.fragments.map(f => `<li>${f.text}</li>`).join('');
+    fetch('server/get_profile.php')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) return alert(data.error);
+        user.credits = data.credits;
+        document.getElementById('user-info').textContent = `${data.username} | Credits: ${data.credits}`;
+        document.getElementById('rank').textContent = `Rank: ${data.rank} / ${data.total_players}`;
+        const fragmentList = document.getElementById('fragment-list');
+        fragmentList.innerHTML = data.fragments.map(f => `<li>${f.text}</li>`).join('');
+    });
 }
 
-// Top Coders Page
 function initTopCoders() {
-    const leaderboardList = document.getElementById('leaderboard-list');
-    players.sort((a, b) => b.credits - a.credits);
-    leaderboardList.innerHTML = players.map(p => `<li>${p.username}: ${p.credits}</li>`).join('');
+    fetch('server/get_leaderboard.php')
+    .then(response => response.json())
+    .then(leaderboard => {
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = leaderboard.map(p => `<li>${p.username}: ${p.credits}</li>`).join('');
+    });
+    updateUser();
 }
 
-// Puzzle Page
 function initPuzzle() {
     let currentCore = 'edge';
     let currentPuzzle = null;
@@ -108,13 +109,17 @@ function initPuzzle() {
     }
 
     function loadPuzzle() {
-        const corePuzzles = puzzles[currentCore];
-        currentPuzzle = corePuzzles[Math.floor(Math.random() * corePuzzles.length)];
-        elements.puzzle.textContent = currentPuzzle.question;
-        elements.input.value = '';
-        const timerDuration = currentCore === 'edge' ? 180 : currentCore === 'deep' ? 120 : 60;
-        startTimer(timerDuration);
-        speakNetmind('Solve this, human.');
+        fetch(`server/get_puzzle.php?core=${currentCore}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) return alert(data.error);
+            currentPuzzle = data.puzzle;
+            elements.puzzle.textContent = data.puzzle.question;
+            elements.input.value = '';
+            startTimer(data.timer);
+            if (data.countermeasure) applyCountermeasure(data.countermeasure);
+            speakNetmind('Solve this, human.');
+        });
     }
 
     function startTimer(seconds) {
@@ -133,36 +138,55 @@ function initPuzzle() {
     }
 
     function submitSolution() {
-        const solution = elements.input.value.trim().toLowerCase();
-        if (solution === currentPuzzle.solution.toLowerCase()) {
-            user.credits += 20;
-            clearInterval(timerInterval);
-            logEvent('Puzzle solved! +20 Credits');
-            maybeAwardFragment();
-            loadPuzzle();
-        } else {
-            logEvent('Incorrect solution.');
-        }
-        updateUser();
+        const solution = elements.input.value.trim();
+        fetch('server/submit_solution.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `puzzle_id=${currentPuzzle.id}&solution=${solution}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                user.credits += data.credits;
+                clearInterval(timerInterval);
+                logEvent(`Puzzle solved! +${data.credits} Credits`);
+                if (data.fragment) {
+                    logEvent(`Fragment found: ${data.fragment.text}`);
+                    speakNetmind('A fragment of my past...');
+                }
+                loadPuzzle();
+                updateUser();
+            } else {
+                logEvent(data.message);
+            }
+        });
     }
 
     function sabotage(type) {
-        const cost = { scramble: 20, fake_hint: 30, netmind_alert: 50 }[type];
-        if (user.credits >= cost) {
-            user.credits -= cost;
-            const targetId = elements.sabotageTarget.value;
-            logEvent(`Sabotaged Player ${targetId} with ${type}`);
-            applySabotage(type); // Simulate on self
-            updateUser();
-            speakNetmind('Interference detected.');
-        } else {
-            logEvent('Not enough credits!');
-        }
+        const targetId = elements.sabotageTarget.value;
+        fetch('server/sabotage.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `target_id=${targetId}&type=${type}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                user.credits = data.remaining_credits;
+                logEvent(`Sabotaged Player ${targetId} with ${type}`);
+                updateUser();
+                speakNetmind('Interference detected.');
+            } else {
+                logEvent(data.error);
+            }
+        });
     }
 
-    function applySabotage(type) {
-        if (type === 'scramble') {
-            elements.puzzle.textContent = elements.puzzle.textContent.split('').sort(() => Math.random() - 0.5).join('');
+    function applyCountermeasure(type) {
+        if (type === 'reverse_input') {
+            elements.input.addEventListener('input', () => {
+                elements.input.value = elements.input.value.split('').reverse().join('');
+            });
         }
     }
 
@@ -173,25 +197,26 @@ function initPuzzle() {
         window.speechSynthesis.speak(utterance);
     }
 
-    function maybeAwardFragment() {
-        if (Math.random() < 0.3) {
-            const fragment = fragments[Math.floor(Math.random() * fragments.length)];
-            user.fragments.push(fragment);
-            logEvent(`Fragment found: ${fragment.text}`);
-            speakNetmind('A fragment of my past...');
-        }
-    }
-
     function logEvent(message) {
         elements.log.innerHTML += `<li>${new Date().toLocaleTimeString()}: ${message}</li>`;
     }
 
     function pollGame() {
         setInterval(() => {
-            if (Math.random() < 0.05) {
-                logEvent('Chaos Event: Double Timers!');
-                speakNetmind('System instability detected.');
-            }
+            fetch('server/poll.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.sabotage.length) {
+                    data.sabotage.forEach(s => {
+                        applySabotage(s.type);
+                        logEvent(`Sabotaged by Player ${s.sender_id}: ${s.type}`);
+                    });
+                }
+                if (data.chaos) {
+                    logEvent(`Chaos Event: ${data.chaos}`);
+                    speakNetmind('System instability detected.');
+                }
+            });
         }, 2000);
     }
 
@@ -213,6 +238,6 @@ function initPuzzle() {
                 elements.tutorialText.textContent = steps[step];
                 speakNetmind(steps[step]);
             }
-        });  
-    }
+        });
+}
 }
