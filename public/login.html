@@ -5,24 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Codebreaker's Gambit</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="terminal">
-        <header>
+    <div class="terminal">
+        <div class="header">
             <h1>Codebreaker's Gambit</h1>
-            <p>Access the Netmind</p>
-        </header>
-        <section id="auth-form">
-            <h2>Login or Register</h2>
-            <form id="login-form">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit" id="login-btn">Login</button>
-                <button type="button" id="register-btn">Register</button>
-            </form>
-            <p id="auth-message"></p>
-        </section>
+            <p>Enter the Grid</p>
+        </div>
+        <div class="content">
+            <div class="auth-box">
+                <h2>Login / Register</h2>
+                <form id="auth-form">
+                    <input type="text" id="username" placeholder="Username" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <div class="button-group">
+                        <button type="submit" id="login-btn">Login</button>
+                        <button type="button" id="register-btn">Register</button>
+                    </div>
+                </form>
+                <p id="auth-message"></p>
+            </div>
+        </div>
     </div>
     <script src="js/script.js"></script>
 </body>

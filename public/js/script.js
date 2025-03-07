@@ -8,9 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (page === 'login.html') initLogin();
         else if (page === 'index.html') initHome();
         else if (page === 'profile.html') initProfile();
-        else if (page === 'top-coders.html') initTopCoders();
+        else if (page === 'leaderboard.html') initLeaderboard();
         else if (page === 'puzzle.html') initPuzzle();
     }
+    document.querySelectorAll('.logout').forEach(link => {
+        link.addEventListener('click', () => {
+            localStorage.removeItem('user');
+            user = null;
+        });
+    });
 });
 
 function updateUser() {
@@ -20,12 +26,12 @@ function updateUser() {
 }
 
 function initLogin() {
-    const loginForm = document.getElementById('login-form');
+    const authForm = document.getElementById('auth-form');
     const loginBtn = document.getElementById('login-btn');
     const registerBtn = document.getElementById('register-btn');
     const messageEl = document.getElementById('auth-message');
 
-    loginForm.addEventListener('submit', (e) => {
+    authForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -49,7 +55,7 @@ function initLogin() {
     registerBtn.addEventListener('click', () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        fetch('../server/login.php', { // Same endpoint handles registration
+        fetch('../server/login.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
@@ -74,6 +80,19 @@ function initHome() {
         const newsList = document.getElementById('news-list');
         newsList.innerHTML = news.map(item => `<p>${item.date}: ${item.content}</p>`).join('');
     });
+    fetch('../server/get_daily_challenge.php')
+    .then(response => response.json())
+    .then(challenge => {
+        const dailyText = document.getElementById('daily-text');
+        const dailyBtn = document.getElementById('daily-btn');
+        if (challenge.message) {
+            dailyText.textContent = challenge.message;
+            dailyBtn.style.display = 'none';
+        } else {
+            dailyText.textContent = `${challenge.question} (Reward: ${challenge.reward} Credits)`;
+            dailyBtn.addEventListener('click', () => startDailyChallenge(challenge));
+        }
+    });
     updateUser();
 }
 
@@ -85,12 +104,19 @@ function initProfile() {
         user.credits = data.credits;
         document.getElementById('user-info').textContent = `${data.username} | Credits: ${data.credits}`;
         document.getElementById('rank').textContent = `Rank: ${data.rank} / ${data.total_players}`;
+        document.getElementById('badge').textContent = data.badge;
         const fragmentList = document.getElementById('fragment-list');
         fragmentList.innerHTML = data.fragments.map(f => `<li>${f.text}</li>`).join('');
     });
+    fetch('../server/get_achievements.php')
+    .then(response => response.json())
+    .then(achievements => {
+        const achievementList = document.getElementById('achievement-list');
+        achievementList.innerHTML = achievements.map(a => `<li>${a.name}: ${a.description} (${a.credits} Credits)</li>`).join('');
+    });
 }
 
-function initTopCoders() {
+function initLeaderboard() {
     fetch('../server/get_leaderboard.php')
     .then(response => response.json())
     .then(leaderboard => {
@@ -114,9 +140,7 @@ function initPuzzle() {
         input: document.getElementById('solution-input'),
         submitBtn: document.getElementById('submit-btn'),
         sabotageTarget: document.getElementById('sabotage-target'),
-        log: document.getElementById('log-list'),
-        tutorial: document.getElementById('tutorial'),
-        tutorialText: document.getElementById('tutorial-text')
+        log: document.getElementById('log-list')
     };
 
     document.querySelectorAll('.core-btn').forEach(btn => {
@@ -133,9 +157,10 @@ function initPuzzle() {
 
     function startGame() {
         elements.coreSelection.style.display = 'none';
-        elements.gameArea.style.display = 'flex';
+        elements.gameArea.style.display = 'block';
         loadPuzzle();
         pollGame();
+        populateSabotageTargets();
     }
 
     function loadPuzzle() {
@@ -148,7 +173,6 @@ function initPuzzle() {
             elements.input.value = '';
             startTimer(data.timer);
             if (data.countermeasure) applyCountermeasure(data.countermeasure);
-            speakNetmind('Solve this, human.');
         });
     }
 
@@ -180,10 +204,7 @@ function initPuzzle() {
                 user.credits += data.credits;
                 clearInterval(timerInterval);
                 logEvent(`Puzzle solved! +${data.credits} Credits`);
-                if (data.fragment) {
-                    logEvent(`Fragment found: ${data.fragment.text}`);
-                    speakNetmind('A fragment of my past...');
-                }
+                if (data.fragment) logEvent(`Fragment found: ${data.fragment.text}`);
                 loadPuzzle();
                 updateUser();
             } else {
@@ -205,7 +226,6 @@ function initPuzzle() {
                 user.credits = data.remaining_credits;
                 logEvent(`Sabotaged Player ${targetId} with ${type}`);
                 updateUser();
-                speakNetmind('Interference detected.');
             } else {
                 logEvent(data.error);
             }
@@ -220,11 +240,13 @@ function initPuzzle() {
         }
     }
 
-    function speakNetmind(message) {
-        const utterance = new SpeechSynthesisUtterance(message);
-        utterance.pitch = 0.8;
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+    function applySabotage(type) {
+        if (type === 'scramble') {
+            elements.puzzle.textContent = elements.puzzle.textContent.split('').sort(() => Math.random() - 0.5).join('');
+        } else if (type === 'code_freeze') {
+            elements.input.disabled = true;
+            setTimeout(() => elements.input.disabled = false, 5000);
+        }
     }
 
     function logEvent(message) {
@@ -243,39 +265,31 @@ function initPuzzle() {
                         logEvent(`Sabotaged by Player ${s.sender_id}: ${s.type}`);
                     });
                 }
-                if (data.chaos) {
-                    logEvent(`Chaos Event: ${data.chaos}`);
-                    speakNetmind('System instability detected.');
-                }
+                if (data.chaos) logEvent(`Chaos Event: ${data.chaos}`);
             });
         }, 2000);
     }
 
-    function applySabotage(type) {
-        if (type === 'scramble') {
-            elements.puzzle.textContent = elements.puzzle.textContent.split('').sort(() => Math.random() - 0.5).join('');
-        }
-    }
-
-    if (!localStorage.getItem('tutorialDone')) {
-        elements.tutorial.style.display = 'flex';
-        let step = 0;
-        const steps = [
-            'Welcome, hacker! Click to solve: KHOOR (Shift 3 back = HELLO)',
-            'Now try sabotaging a rival. Click a sabotage button.',
-            'Collect Fragments to uncover the story. Start playing!'
-        ];
-        elements.tutorialText.textContent = steps[step];
-        elements.tutorial.addEventListener('click', () => {
-            step++;
-            if (step >= steps.length) {
-                elements.tutorial.style.display = 'none';
-                localStorage.setItem('tutorialDone', 'true');
-            } else {
-                elements.tutorialText.textContent = steps[step];
-                speakNetmind(steps[step]);
-            }
+    function populateSabotageTargets() {
+        fetch('../server/get_leaderboard.php')
+        .then(response => response.json())
+        .then(players => {
+            elements.sabotageTarget.innerHTML = players
+                .filter(p => p.username !== user.username)
+                .map(p => `<option value="${p.id}">${p.username}</option>`).join('');
         });
     }
+
     updateUser();
+}
+
+function startDailyChallenge(challenge) {
+    const solution = prompt(`Solve: ${challenge.question}`);
+    if (solution && solution.toLowerCase() === challenge.solution.toLowerCase()) {
+        user.credits += challenge.reward;
+        updateUser();
+        alert(`Challenge completed! +${challenge.reward} Credits`);
+    } else {
+        alert('Incorrect solution.');
+    }
 }

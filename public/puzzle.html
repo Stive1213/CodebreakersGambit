@@ -5,53 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play - Codebreaker's Gambit</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="terminal">
-       <nav>
-    <a href="index.html">Home</a>
-    <a href="profile.html">Profile</a>
-    <a href="top-coders.html">Top Coders</a>
-    <a href="puzzle.html">Play</a>
-    <a href="login.html">Login</a>
-</nav>
-        <header>
+    <div class="terminal">
+        <nav class="nav-bar">
+            <a href="index.html">Home</a>
+            <a href="profile.html">Profile</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="puzzle.html" class="active">Play</a>
+            <a href="login.html" class="logout">Logout</a>
+        </nav>
+        <div class="header">
             <h1>Hack the Netmind</h1>
-            <p id="user-info">Guest | Credits: 0</p>
-        </header>
-        <section id="core-selection">
-            <button class="core-btn" data-core="edge">Edge Net</button>
-            <button class="core-btn" data-core="deep">Deep Net</button>
-            <button class="core-btn" data-core="core">Core Net</button>
-        </section>
-        <section id="game-area" style="display:none;">
-            <div id="puzzle-container">
-                <p id="puzzle"></p>
-                <p id="timer">Time: 0s</p>
-                <input id="solution-input" type="text" placeholder="Enter solution" autocomplete="off">
-                <button id="submit-btn">Submit</button>
+            <p id="user-info"></p>
+        </div>
+        <div class="content">
+            <div id="core-selection">
+                <button class="core-btn" data-core="edge">Edge Net</button>
+                <button class="core-btn" data-core="deep">Deep Net</button>
+                <button class="core-btn" data-core="core">Core Net</button>
             </div>
-            <div id="sabotage-controls">
-                <select id="sabotage-target">
-                    <option value="1">Player 1</option>
-                    <option value="2">Player 2</option>
-                </select>
-                <button class="sabotage-btn" data-type="scramble">Scramble (20)</button>
-                <button class="sabotage-btn" data-type="fake_hint">Fake Hint (30)</button>
-                <button class="sabotage-btn" data-type="netmind_alert">Netmind Alert (50)</button>
-            </div>
-            <div id="hack-log">
-                <h2>Hack Log</h2>
-                <ul id="log-list"></ul>
-            </div>
-        </section>
-        <div id="tutorial" class="modal" style="display:none;">
-            <div class="modal-content">
-                <p id="tutorial-text"></p>
+            <div id="game-area" style="display:none;">
+                <div class="puzzle-box">
+                    <p id="puzzle"></p>
+                    <p id="timer">Time: 0s</p>
+                    <input id="solution-input" type="text" placeholder="Enter solution" autocomplete="off">
+                    <button id="submit-btn">Submit</button>
+                </div>
+                <div class="sabotage-box">
+                    <h2>Sabotage</h2>
+                    <select id="sabotage-target"></select>
+                    <button class="sabotage-btn" data-type="scramble">Scramble (20)</button>
+                    <button class="sabotage-btn" data-type="fake_hint">Fake Hint (30)</button>
+                    <button class="sabotage-btn" data-type="netmind_alert">Alert (50)</button>
+                    <button class="sabotage-btn" data-type="code_freeze">Code Freeze (40)</button>
+                </div>
+                <div class="log-box">
+                    <h2>Hack Log</h2>
+                    <ul id="log-list"></ul>
+                </div>
             </div>
         </div>
     </div>
     <script src="js/script.js"></script>
 </body>
-</html> 
+</html>

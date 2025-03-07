@@ -5,27 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Codebreaker's Gambit</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="terminal">
-       <nav>
-    <a href="index.html">Home</a>
-    <a href="profile.html">Profile</a>
-    <a href="top-coders.html">Top Coders</a>
-    <a href="puzzle.html">Play</a>
-    <a href="login.html">Login</a>
-</nav>
-        <header>
+    <div class="terminal">
+        <nav class="nav-bar">
+            <a href="index.html">Home</a>
+            <a href="profile.html" class="active">Profile</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="puzzle.html">Play</a>
+            <a href="login.html" class="logout">Logout</a>
+        </nav>
+        <div class="header">
             <h1>Your Profile</h1>
-        </header>
-        <section id="profile-info">
-            <p id="user-info">Username: Guest | Credits: 0</p>
-            <p id="rank">Rank: Unranked</p>
-            <h2>Fragments Collected</h2>
-            <ul id="fragment-list"></ul>
-        </section>
+            <p id="user-info"></p>
+        </div>
+        <div class="content">
+            <div class="stats">
+                <p id="rank"></p>
+                <p>Badge: <span id="badge"></span></p>
+            </div>
+            <div class="achievements">
+                <h2>Achievements</h2>
+                <ul id="achievement-list"></ul>
+            </div>
+            <div class="fragments">
+                <h2>Fragments</h2>
+                <ul id="fragment-list"></ul>
+            </div>
+        </div>
     </div>
     <script src="js/script.js"></script>
 </body>
-</html> 
+</html>

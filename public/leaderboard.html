@@ -3,32 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Codebreaker's Gambit</title>
+    <title>Leaderboard - Codebreaker's Gambit</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="terminal">
         <nav class="nav-bar">
-            <a href="index.html" class="active">Home</a>
+            <a href="index.html">Home</a>
             <a href="profile.html">Profile</a>
-            <a href="leaderboard.html">Leaderboard</a>
+            <a href="leaderboard.html" class="active">Leaderboard</a>
             <a href="puzzle.html">Play</a>
             <a href="login.html" class="logout">Logout</a>
         </nav>
         <div class="header">
-            <h1>Codebreaker's Gambit</h1>
+            <h1>Leaderboard</h1>
             <p id="user-info"></p>
         </div>
         <div class="content">
-            <div class="news-feed">
-                <h2>News Feed</h2>
-                <div id="news-list"></div>
-            </div>
-            <div class="daily-challenge">
-                <h2>Daily Challenge</h2>
-                <p id="daily-text"></p>
-                <button id="daily-btn">Attempt</button>
-            </div>
+            <ul id="leaderboard-list"></ul>
         </div>
     </div>
     <script src="js/script.js"></script>

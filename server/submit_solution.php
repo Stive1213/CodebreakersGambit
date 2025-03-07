@@ -9,11 +9,11 @@ if (!isset($_SESSION['user_id'])) {
 $puzzle_id = filter_input(INPUT_POST, 'puzzle_id', FILTER_SANITIZE_NUMBER_INT);
 $solution = filter_input(INPUT_POST, 'solution', FILTER_SANITIZE_STRING);
 
-$stmt = $pdo->prepare("SELECT solution FROM puzzles WHERE id = ?");
+$stmt = $pdo->prepare("SELECT solution, core FROM puzzles WHERE id = ?");
 $stmt->execute([$puzzle_id]);
-$correct = $stmt->fetchColumn();
+$puzzle = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (strtolower($solution) === strtolower($correct)) {
+if (strtolower($solution) === strtolower($puzzle['solution'])) {
     $credits = rand(10, 50);
     $stmt = $pdo->prepare("UPDATE users SET credits = credits + ? WHERE id = ?");
     $stmt->execute([$credits, $_SESSION['user_id']]);
@@ -22,6 +22,21 @@ if (strtolower($solution) === strtolower($correct)) {
     if ($fragment) {
         $stmt = $pdo->prepare("UPDATE users SET fragments_collected = CONCAT(fragments_collected, ',', ?) WHERE id = ?");
         $stmt->execute([$fragment['id'], $_SESSION['user_id']]);
+    }
+    
+    // Check for achievements
+    $stmt = $pdo->prepare("SELECT achievements FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $achievements = explode(',', trim($stmt->fetchColumn(), ','));
+    if (empty($achievements[0])) $achievements = [];
+    
+    if (!in_array('1', $achievements)) {
+        $stmt = $pdo->prepare("UPDATE users SET achievements = CONCAT(achievements, ',1') WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+    }
+    if ($puzzle['core'] === 'core' && !in_array('3', $achievements)) {
+        $stmt = $pdo->prepare("UPDATE users SET achievements = CONCAT(achievements, ',3') WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
     }
     
     echo json_encode(['success' => true, 'credits' => $credits, 'fragment' => $fragment]);

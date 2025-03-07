@@ -4,152 +4,181 @@
     box-sizing: border-box;
 }
 body {
-    background: #0d0d0d;
-    color: #00ff99;
-    font-family: 'VT323', monospace;
-    font-size: 20px;
-    line-height: 1.5;
-    padding: 20px;
     background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+    color: #00ffcc;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
-#terminal {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: rgba(0, 0, 0, 0.9);
+.terminal {
+    max-width: 1400px;
+    margin: 20px auto;
+    background: rgba(10, 10, 10, 0.95);
+    border: 2px solid #00ffcc;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.5), inset 0 0 10px rgba(0, 255, 204, 0.2);
+    border-radius: 8px;
     padding: 30px;
-    border: 2px solid #00ff99;
-    box-shadow: 0 0 15px #00ff99, inset 0 0 5px #00ff99;
-    border-radius: 5px;
+    position: relative;
 }
-nav {
-    text-align: center;
-    margin-bottom: 20px;
-    background: #1a1a1a;
-    padding: 10px;
-    border-bottom: 1px solid #00ff99;
+.nav-bar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    background: #151515;
+    padding: 15px;
+    border-bottom: 1px solid #00ffcc;
+    box-shadow: 0 2px 5px rgba(0, 255, 204, 0.3);
 }
-nav a {
-    color: #00ff99;
+.nav-bar a {
+    color: #00ffcc;
     text-decoration: none;
-    margin: 0 20px;
-    font-size: 26px;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.3s;
 }
-nav a:hover {
-    color: #ff3333;
-    text-shadow: 0 0 5px #ff3333;
+.nav-bar a:hover, .nav-bar a.active {
+    color: #ff0066;
+    text-shadow: 0 0 5px #ff0066;
 }
-header {
+.nav-bar .logout {
+    margin-left: auto;
+}
+.header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    padding: 20px;
+    background: linear-gradient(90deg, rgba(0, 255, 204, 0.1), rgba(255, 0, 102, 0.1));
+    border-radius: 5px;
 }
 h1 {
-    font-size: 52px;
-    text-shadow: 0 0 8px #00ff99;
-    letter-spacing: 2px;
+    font-size: 60px;
+    color: #00ffcc;
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #ff0066;
+    letter-spacing: 3px;
 }
 h2 {
-    font-size: 32px;
-    text-shadow: 0 0 4px #00ff99;
-    margin-bottom: 15px;
+    font-size: 28px;
+    color: #ff0066;
+    text-shadow: 0 0 5px #ff0066;
+    margin-bottom: 20px;
 }
 p {
     font-size: 18px;
 }
-.core-btn, .sabotage-btn, #submit-btn, #login-btn, #register-btn {
-    background: #1a1a1a;
-    color: #00ff99;
-    border: 1px solid #00ff99;
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'VT323', monospace;
+#user-info {
+    color: #fff;
     font-size: 20px;
+    margin-top: 10px;
 }
-.core-btn:hover, .sabotage-btn:hover, #submit-btn:hover, #login-btn:hover, #register-btn:hover {
-    background: #00ff99;
-    color: #0d0d0d;
-    box-shadow: 0 0 10px #00ff99;
-}
-#core-selection {
-    text-align: center;
-    margin: 20px 0;
-}
-#game-area {
+.content {
     display: flex;
     flex-wrap: wrap;
-    gap: 25px;
+    gap: 30px;
 }
-#puzzle-container, #sabotage-controls, #hack-log {
+.news-feed, .daily-challenge, .stats, .achievements, .fragments, #game-area {
     flex: 1;
     min-width: 300px;
     padding: 25px;
     background: #151515;
-    border: 1px solid #00ff99;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+}
+.auth-box {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 40px;
+    background: #151515;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+}
+#auth-form input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    background: #0a0a0a;
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
     border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+#auth-form input:focus {
+    border-color: #ff0066;
+    box-shadow: 0 0 5px #ff0066;
+    outline: none;
+}
+.button-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+button {
+    background: #1a1a1a;
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+    padding: 12px 25px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+button:hover {
+    background: #00ffcc;
+    color: #0a0a0a;
+    box-shadow: 0 0 10px #00ffcc;
+}
+#core-selection {
+    text-align: center;
+    margin: 30px 0;
+}
+.puzzle-box, .sabotage-box, .log-box {
+    padding: 25px;
+    background: #151515;
+    border: 1px solid #00ffcc;
+    border-radius: 5px;
 }
 #puzzle {
-    font-size: 26px;
+    font-size: 24px;
+    color: #fff;
     margin-bottom: 15px;
-    text-shadow: 0 0 2px #00ff99;
 }
 #timer {
     font-size: 20px;
-    color: #ff3333;
-    text-shadow: 0 0 2px #ff3333;
+    color: #ff0066;
+    margin-bottom: 15px;
 }
-#solution-input, #username, #password {
-    background: #0d0d0d;
-    color: #00ff99;
-    border: 1px solid #00ff99;
-    padding: 8px;
-    width: 250px;
-    margin: 10px 0;
-    font-family: 'VT323', monospace;
-    font-size: 20px;
-}
-#auth-form {
-    text-align: center;
-    max-width: 400px;
-    margin: 0 auto;
-}
-#auth-message {
-    color: #ff3333;
-    margin-top: 10px;
+#solution-input {
+    width: 70%;
+    padding: 10px;
+    background: #0a0a0a;
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+    border-radius: 3px;
+    margin-right: 10px;
 }
 ul {
     list-style: none;
 }
 li {
-    margin: 8px 0;
-    padding: 5px;
+    padding: 10px;
+    margin: 5px 0;
     background: #1a1a1a;
-    border-left: 3px solid #00ff99;
+    border-left: 4px solid #ff0066;
+    transition: all 0.3s;
 }
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+li:hover {
+    background: #252525;
+    box-shadow: 0 0 5px rgba(255, 0, 102, 0.5);
 }
-.modal-content {
-    background: #1a1a1a;
-    padding: 25px;
-    border: 1px solid #00ff99;
-    text-align: center;
-    max-width: 600px;
-    box-shadow: 0 0 10px #00ff99;
-}
-.glitch {
-    animation: glitch 0.5s infinite;
-}
-@keyframes glitch {
-    0% { transform: skew(1deg); }
-    50% { transform: skew(-1deg); }
+#auth-message {
+    color: #ff0066;
+    margin-top: 15px;
 }
