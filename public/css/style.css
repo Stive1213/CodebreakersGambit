@@ -1,0 +1,9 @@
+body {
+    background: #0d0d0d;
+    color: #00ff99;
+    font-family: monospace;
+}
+#terminal {
+    text-align: center;
+    margin-top: 50px;
+}
